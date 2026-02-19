@@ -1,8 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.*" %>
+<%@ page import="com.busbooking.model.User" %>
 <%
-    if (session.getAttribute("admin") == null) {
-        response.sendRedirect(request.getContextPath() + "/admin/login");
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect("login.jsp");
         return;
     }
 %>
@@ -10,183 +11,333 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Bus Booking</title>
+    <title>BusBooking - India's No.1 Online Bus Ticket Booking</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-               background: #f5f6fa; }
+               background: #f0f3f8; }
         
-        .navbar { background: #2c3e50; padding: 1rem 5%; color: white; 
-                  display: flex; justify-content: space-between; align-items: center; 
-                  position: fixed; width: 100%; top: 0; z-index: 1000; }
-        .logo { font-size: 24px; font-weight: bold; }
-        .logo span { color: #3498db; }
-        .admin-info { display: flex; align-items: center; gap: 20px; }
-        .admin-info span { background: #3498db; padding: 5px 15px; border-radius: 20px; }
-        .logout { color: white; text-decoration: none; background: #e74c3c; 
-                  padding: 5px 15px; border-radius: 5px; transition: background 0.3s; }
-        .logout:hover { background: #c0392b; }
+        /* Header/Navbar */
+        .top-bar { background: #d84f57; color: white; padding: 8px 10%; 
+                   font-size: 13px; display: flex; justify-content: space-between; }
+        .top-bar a { color: white; text-decoration: none; margin-left: 20px; }
         
-        .sidebar { width: 250px; background: white; position: fixed; left: 0; 
-                   top: 70px; bottom: 0; box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
-                   padding: 20px 0; overflow-y: auto; }
-        .sidebar-menu { list-style: none; }
-        .sidebar-menu li { padding: 12px 25px; border-left: 3px solid transparent; 
-                           transition: all 0.3s; cursor: pointer; }
-        .sidebar-menu li:hover { background: #f0f3f8; border-left-color: #3498db; }
-        .sidebar-menu li.active { background: #f0f3f8; border-left-color: #3498db; 
-                                   font-weight: bold; color: #3498db; }
-        .sidebar-menu li i { margin-right: 10px; width: 20px; display: inline-block; }
+        .navbar { background: white; padding: 15px 10%; display: flex; 
+                  justify-content: space-between; align-items: center; 
+                  box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo-section { display: flex; align-items: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #d84f57; margin-right: 40px; }
+        .logo span { color: #333; font-weight: normal; font-size: 14px; 
+                     margin-left: 5px; }
+        .nav-tabs { display: flex; gap: 30px; }
+        .nav-tab { color: #666; text-decoration: none; font-weight: 500; 
+                   padding-bottom: 5px; border-bottom: 3px solid transparent; }
+        .nav-tab.active { color: #d84f57; border-bottom-color: #d84f57; }
+        .nav-tab:hover { color: #d84f57; }
         
-        .main-content { margin-left: 270px; margin-right: 20px; 
-                        margin-top: 90px; margin-bottom: 20px; }
+        .user-section { display: flex; align-items: center; gap: 20px; }
+        .user-name { color: #333; font-weight: 500; }
+        .help { color: #666; text-decoration: none; }
+        .logout { background: #d84f57; color: white; padding: 8px 20px; 
+                  border-radius: 20px; text-decoration: none; font-weight: 500; }
         
-        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-                           gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 25px; border-radius: 10px; 
-                     box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-                     transition: transform 0.3s; }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-title { color: #7f8c8d; font-size: 14px; text-transform: uppercase; 
-                      letter-spacing: 1px; margin-bottom: 10px; }
-        .stat-value { font-size: 36px; font-weight: bold; color: #2c3e50; 
-                      margin-bottom: 5px; }
-        .stat-icon { float: right; font-size: 40px; opacity: 0.3; }
+        /* Hero Search Section */
+        .hero { background: linear-gradient(135deg, #d84f57 0%, #b13b42 100%); 
+                padding: 40px 10%; color: white; }
+        .hero h1 { font-size: 36px; margin-bottom: 10px; }
+        .hero p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
         
-        .card { background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-                margin-bottom: 30px; overflow: hidden; }
-        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                       color: white; padding: 15px 20px; font-size: 18px; font-weight: bold; }
-        .card-body { padding: 20px; }
+        .search-container { background: white; border-radius: 40px; 
+                            padding: 20px 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .search-row { display: flex; align-items: center; gap: 15px; }
+        .location-group { flex: 2; position: relative; }
+        .location-group label { display: block; color: #666; font-size: 12px; 
+                                 margin-bottom: 5px; }
+        .location-group input, .location-group select { width: 100%; padding: 12px; 
+                                                         border: 1px solid #ddd; 
+                                                         border-radius: 30px; 
+                                                         font-size: 16px; }
+        .location-group input:focus, .location-group select:focus { 
+            outline: none; border-color: #d84f57; 
+        }
+        .swap-icon { position: absolute; right: 15px; top: 38px; color: #d84f57; 
+                     cursor: pointer; background: white; padding: 5px; 
+                     border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; 
-             color: #2c3e50; border-bottom: 2px solid #dee2e6; }
-        td { padding: 12px; border-bottom: 1px solid #dee2e6; }
-        tr:hover { background: #f8f9fa; }
+        .date-group { flex: 1; }
+        .date-group label { display: block; color: #666; font-size: 12px; 
+                            margin-bottom: 5px; }
+        .date-group input { width: 100%; padding: 12px; border: 1px solid #ddd; 
+                            border-radius: 30px; font-size: 16px; }
         
-        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; 
-                 font-weight: 600; display: inline-block; }
-        .badge-success { background: #d4edda; color: #155724; }
-        .badge-warning { background: #fff3cd; color: #856404; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
+        .search-btn-group { flex: 0.5; }
+        .search-btn { background: #d84f57; color: white; border: none; 
+                      padding: 15px 30px; border-radius: 30px; font-size: 18px; 
+                      font-weight: bold; cursor: pointer; width: 100%; }
+        .search-btn:hover { background: #b13b42; }
         
-        .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .chart-box { background: white; border-radius: 10px; padding: 20px; 
-                     box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .chart-title { font-size: 16px; font-weight: 600; color: #2c3e50; 
-                       margin-bottom: 15px; padding-bottom: 10px; 
-                       border-bottom: 1px solid #dee2e6; }
+        .date-options { display: flex; gap: 20px; margin-top: 20px; 
+                        padding-top: 20px; border-top: 1px solid #eee; }
+        .date-option { display: flex; align-items: center; gap: 10px; 
+                       color: #333; cursor: pointer; }
+        .date-option input[type="radio"] { width: 18px; height: 18px; 
+                                            accent-color: #d84f57; }
+        
+        /* Offer Banner */
+        .offer-banner { background: white; margin: 30px 10%; padding: 20px; 
+                        border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+                        display: flex; align-items: center; gap: 20px; }
+        .offer-code { background: #f0f3f8; padding: 10px 20px; border-radius: 30px; 
+                      font-weight: bold; color: #d84f57; }
+        .offer-text { flex: 1; }
+        .offer-btn { background: #d84f57; color: white; padding: 10px 30px; 
+                     border-radius: 30px; text-decoration: none; }
+        
+        /* Features Section */
+        .features { display: grid; grid-template-columns: repeat(4, 1fr); 
+                    gap: 30px; margin: 40px 10%; }
+        .feature { background: white; padding: 30px; border-radius: 15px; 
+                   text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .feature-icon { font-size: 40px; margin-bottom: 15px; }
+        .feature h3 { margin-bottom: 10px; color: #333; }
+        .feature p { color: #666; font-size: 14px; }
+        
+        /* Footer */
+        .footer { background: #2c3e50; color: white; padding: 50px 10%; 
+                  margin-top: 50px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); 
+                       gap: 30px; }
+        .footer h4 { margin-bottom: 20px; }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 10px; }
+        .footer-links a { color: #bdc3c7; text-decoration: none; }
+        .footer-links a:hover { color: white; }
+        .copyright { text-align: center; margin-top: 40px; padding-top: 20px; 
+                     border-top: 1px solid #34495e; color: #bdc3c7; }
+        
+        /* Weather Widget */
+        .weather-widget { background: #34495e; padding: 10px 20px; 
+                          border-radius: 30px; display: inline-flex; 
+                          align-items: center; gap: 10px; color: white; }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .search-row { flex-direction: column; }
+            .features { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div>Get 10% Discount Use code APP10 on app | <a href="#">Install BusBooking App</a></div>
+        <div>
+            <a href="#">Help</a>
+            <a href="#">English</a>
+            <a href="#">INR</a>
+        </div>
+    </div>
+    
+    <!-- Main Navbar -->
     <nav class="navbar">
-        <div class="logo">BusBooking <span>Admin</span></div>
-        <div class="admin-info">
-            <span>👑 <%= session.getAttribute("admin") %></span>
+        <div class="logo-section">
+            <div class="logo">BusBooking <span>.com</span></div>
+            <div class="nav-tabs">
+                <a href="#" class="nav-tab active">Bus Tickets</a>
+            </div>
+        </div>
+        <div class="user-section">
+            <span class="user-name">Welcome, <%= user.getFullName() %>!</span>
+            <a href="#" class="help">Help</a>
             <a href="logout" class="logout">Logout</a>
         </div>
     </nav>
     
-    <div class="sidebar">
-        <ul class="sidebar-menu">
-            <li class="active" onclick="window.location.href='dashboard'">📊 Dashboard</li>
-            <li onclick="window.location.href='buses'">🚌 Bus Management</li>
-            <li onclick="window.location.href='routes'">🛣️ Route Management</li>
-            <li onclick="window.location.href='schedules'">📅 Schedule Management</li>
-            <li onclick="window.location.href='bookings'">🎫 Bookings</li>
-            <li onclick="window.location.href='users'">👥 Users</li>
-            <li onclick="window.location.href='reports'">📈 Reports</li>
-        </ul>
+    <!-- Hero Search Section -->
+    <div class="hero">
+        <h1>India's No. 1 Online Bus Ticket Booking Site</h1>
+        <p>Book buses with ease and get exclusive discounts</p>
+        
+        <div class="search-container">
+            <form id="searchForm" action="search" method="get" onsubmit="return validateSearch()">
+                <div class="search-row">
+                    <div class="location-group">
+                        <label>FROM</label>
+                        <select name="origin" id="origin" required>
+                            <option value="">Select Origin</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Bangalore">Bangalore</option>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Kolkata">Kolkata</option>
+                            <option value="Pune">Pune</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Ahmedabad">Ahmedabad</option>
+                        </select>
+                        <span class="swap-icon" onclick="swapLocations()">⇄</span>
+                    </div>
+                    
+                    <div class="location-group">
+                        <label>TO</label>
+                        <select name="destination" id="destination" required>
+                            <option value="">Select Destination</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Bangalore">Bangalore</option>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Kolkata">Kolkata</option>
+                            <option value="Pune">Pune</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Agra">Agra</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Mysore">Mysore</option>
+                        </select>
+                    </div>
+                    
+                    <div class="date-group">
+                        <label>DATE OF JOURNEY</label>
+                        <input type="date" name="travelDate" id="travelDate" required 
+                               min="2026-02-17" value="2026-02-17">
+                    </div>
+                    
+                    <div class="search-btn-group">
+                        <button type="submit" class="search-btn">SEARCH BUSES</button>
+                    </div>
+                </div>
+                
+                <div class="date-options">
+                    <label class="date-option">
+                        <input type="radio" name="dateOption" value="today" checked onclick="setDate('today')"> Today
+                    </label>
+                    <label class="date-option">
+                        <input type="radio" name="dateOption" value="tomorrow" onclick="setDate('tomorrow')"> Tomorrow
+                    </label>
+                </div>
+            </form>
+        </div>
     </div>
     
-    <div class="main-content">
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-icon">🚌</div>
-                <div class="stat-title">Total Buses</div>
-                <div class="stat-value"><%= request.getAttribute("totalBuses") %></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🛣️</div>
-                <div class="stat-title">Total Routes</div>
-                <div class="stat-value"><%= request.getAttribute("totalRoutes") %></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📅</div>
-                <div class="stat-title">Total Schedules</div>
-                <div class="stat-value"><%= request.getAttribute("totalSchedules") %></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-title">Total Users</div>
-                <div class="stat-value"><%= request.getAttribute("totalUsers") %></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎫</div>
-                <div class="stat-title">Total Bookings</div>
-                <div class="stat-value"><%= request.getAttribute("totalBookings") %></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-title">Total Revenue</div>
-                <div class="stat-value">₹<%= request.getAttribute("totalRevenue") %></div>
-            </div>
+    <!-- Offer Banner -->
+    <div class="offer-banner">
+        <div class="offer-code">BUS10</div>
+        <div class="offer-text">
+            <strong>Special Bus Offer!</strong> - Get 10% off on your first booking
         </div>
-        
-        <div class="charts-container">
-            <div class="chart-box">
-                <div class="chart-title">Popular Routes</div>
-                <table>
-                    <tr>
-                        <th>Route</th>
-                        <th>Bookings</th>
-                        <th>Revenue</th>
-                    </tr>
-                    <% 
-                        List<Map<String, Object>> popularRoutes = 
-                            (List<Map<String, Object>>) request.getAttribute("popularRoutes");
-                        if (popularRoutes != null) {
-                            for (Map<String, Object> route : popularRoutes) { 
-                    %>
-                    <tr>
-                        <td><%= route.get("origin") %> → <%= route.get("destination") %></td>
-                        <td><span class="badge badge-success"><%= route.get("count") %></span></td>
-                        <td>₹<%= route.get("revenue") %></td>
-                    </tr>
-                    <% 
-                            }
-                        } 
-                    %>
-                </table>
-            </div>
-            
-            <div class="chart-box">
-                <div class="chart-title">Recent Bookings</div>
-                <table>
-                    <tr>
-                        <th>User</th>
-                        <th>Route</th>
-                        <th>Amount</th>
-                    </tr>
-                    <% 
-                        List<Map<String, Object>> recentBookings = 
-                            (List<Map<String, Object>>) request.getAttribute("recentBookings");
-                        if (recentBookings != null) {
-                            for (Map<String, Object> booking : recentBookings) { 
-                    %>
-                    <tr>
-                        <td><%= booking.get("user") %></td>
-                        <td><%= booking.get("route") %></td>
-                        <td>₹<%= booking.get("amount") %></td>
-                    </tr>
-                    <% 
-                            }
-                        } 
-                    %>
-                </table>
-            </div>
+        <a href="#" class="offer-btn">Book Now</a>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="features">
+        <div class="feature">
+            <div class="feature-icon">🚌</div>
+            <h3>200+ Bus Operators</h3>
+            <p>Choose from multiple operators</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">💰</div>
+            <h3>Best Prices</h3>
+            <p>Guaranteed lowest fares</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🛡️</div>
+            <h3>Safe Travel</h3>
+            <p>COVID-19 safety measures</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">⭐</div>
+            <h3>24/7 Support</h3>
+            <p>We're here to help</p>
         </div>
     </div>
+    
+    <!-- Weather Widget -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <div class="weather-widget">
+            <span>🌡️ 29°C</span>
+            <span>☁️ Mostly cloudy</span>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <h4>About BusBooking</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Mobile App</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Info</h4>
+                <ul class="footer-links">
+                    <li><a href="#">T&C</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Popular Routes</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Mumbai to Pune</a></li>
+                    <li><a href="#">Delhi to Agra</a></li>
+                    <li><a href="#">Bangalore to Mysore</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Follow Us</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2026 BusBooking.com - India's No.1 Online Bus Ticket Booking Site. All rights reserved.
+        </div>
+    </footer>
+    
+    <script>
+        function swapLocations() {
+            var origin = document.getElementById('origin');
+            var dest = document.getElementById('destination');
+            var temp = origin.value;
+            origin.value = dest.value;
+            dest.value = temp;
+        }
+        
+        function setDate(option) {
+            var dateInput = document.getElementById('travelDate');
+            var today = new Date();
+            var tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            if (option === 'today') {
+                dateInput.value = today.toISOString().split('T')[0];
+            } else if (option === 'tomorrow') {
+                dateInput.value = tomorrow.toISOString().split('T')[0];
+            }
+        }
+        
+        function validateSearch() {
+            var origin = document.getElementById('origin').value;
+            var dest = document.getElementById('destination').value;
+            
+            if (origin === dest) {
+                alert('Origin and destination cannot be the same!');
+                return false;
+            }
+            return true;
+        }
+        
+        // Set today's date as default
+        window.onload = function() {
+            var today = new Date();
+            document.getElementById('travelDate').value = today.toISOString().split('T')[0];
+        };
+    </script>
 </body>
 </html>
