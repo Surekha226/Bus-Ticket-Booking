@@ -5,7 +5,7 @@ import java.sql.*;
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/busbooking";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "Josh!th@957"; // Change if your password is different
+    private static final String PASSWORD = "root"; // Change if your password is different
     
     static {
         try {
