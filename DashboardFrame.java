@@ -2,7 +2,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
-
 public class DashboardFrame extends JFrame {
     private String username;
     
@@ -21,7 +20,6 @@ public class DashboardFrame extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
         // Main panel
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
