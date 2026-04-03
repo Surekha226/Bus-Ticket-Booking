@@ -351,7 +351,6 @@ public class SearchBusesFrame extends JFrame {
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
         int busId = (int) tableModel.getValueAt(selectedRow, 0);
         String busName = (String) tableModel.getValueAt(selectedRow, 1);
         double fare = (double) tableModel.getValueAt(selectedRow, 7);
