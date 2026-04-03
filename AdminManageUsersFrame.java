@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.util.Vector;
-
 public class AdminManageUsersFrame extends JFrame {
     private String adminUsername;
     private JTable usersTable;
@@ -13,7 +12,6 @@ public class AdminManageUsersFrame extends JFrame {
     private JTextField searchField;
     private JButton searchButton, refreshButton, backButton, deleteButton, resetPasswordButton;
     private JLabel totalUsersLabel;
-    
     public AdminManageUsersFrame(String adminUsername) {
         this.adminUsername = adminUsername;
         
