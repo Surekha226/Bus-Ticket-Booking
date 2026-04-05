@@ -22,12 +22,17 @@ public class BookTicketFrame extends JFrame {
     private Set<String> bookedSeats = new HashSet<>();
     private String selectedSeatNumber = "";
     
+    // Constants for seat grid
+    private static final int SEAT_ROWS = 10;
+    private static final int SEAT_COLS = 4;
+    private static final int TOTAL_SEATS = SEAT_ROWS * SEAT_COLS; // 40 seats
+    
     public BookTicketFrame(String username) {
         this.username = username;
         
         setTitle("Bus Ticket Booking - Book Ticket");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 700);
+        setSize(1100, 800);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         
@@ -54,7 +59,7 @@ public class BookTicketFrame extends JFrame {
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(52, 73, 94));
-        headerPanel.setPreferredSize(new Dimension(1000, 60));
+        headerPanel.setPreferredSize(new Dimension(1100, 60));
         
         JLabel titleLabel = new JLabel("Book a Ticket");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
@@ -115,7 +120,7 @@ public class BookTicketFrame extends JFrame {
         });
         
         JScrollPane scrollPane = new JScrollPane(busTable);
-        scrollPane.setPreferredSize(new Dimension(950, 120));
+        scrollPane.setPreferredSize(new Dimension(1050, 120));
         centerPanel.add(scrollPane, BorderLayout.NORTH);
         
         // Split pane for booking form and seat selection
@@ -147,7 +152,7 @@ public class BookTicketFrame extends JFrame {
             new Color(52, 73, 94)
         ));
         formPanel.setBackground(new Color(236, 240, 241));
-        formPanel.setPreferredSize(new Dimension(280, 400));
+        formPanel.setPreferredSize(new Dimension(280, 450));
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -304,14 +309,14 @@ public class BookTicketFrame extends JFrame {
         
         panel.add(legendPanel, BorderLayout.NORTH);
         
-        // Seat grid panel - Using GridLayout with small cells
-        seatGridPanel = new JPanel(new GridLayout(5, 4, 5, 5)); // 5 rows x 4 columns = 20 seats
+        // Seat grid panel - 10 rows x 4 columns = 40 seats
+        seatGridPanel = new JPanel(new GridLayout(SEAT_ROWS, SEAT_COLS, 5, 5));
         seatGridPanel.setBackground(Color.WHITE);
         seatGridPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JScrollPane scrollPane = new JScrollPane(seatGridPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setPreferredSize(new Dimension(450, 250));
+        scrollPane.setPreferredSize(new Dimension(500, 450));
         
         panel.add(scrollPane, BorderLayout.CENTER);
         
@@ -342,10 +347,10 @@ public class BookTicketFrame extends JFrame {
     private void loadEmptySeatGrid() {
         seatGridPanel.removeAll();
         
-        // Create 20 seats (5 rows x 4 columns) as shown in the image
-        for (int row = 0; row < 5; row++) {
-            for (int col = 0; col < 4; col++) {
-                int seatNum = (row * 4) + col + 1;
+        // Create 40 seats (10 rows x 4 columns)
+        for (int row = 0; row < SEAT_ROWS; row++) {
+            for (int col = 0; col < SEAT_COLS; col++) {
+                int seatNum = (row * SEAT_COLS) + col + 1;
                 String seatNumber = String.format("%02d", seatNum);
                 
                 JButton seatButton = createSmallSeatButton(seatNumber, Color.LIGHT_GRAY);
@@ -365,7 +370,7 @@ public class BookTicketFrame extends JFrame {
         button.setFont(new Font("Arial", Font.BOLD, 10));
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
-        button.setPreferredSize(new Dimension(40, 30));
+        button.setPreferredSize(new Dimension(45, 35));
         button.setMargin(new Insets(1, 1, 1, 1));
         
         return button;
@@ -381,6 +386,7 @@ public class BookTicketFrame extends JFrame {
         
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Query to get booked seats for selected bus
+            // Note: Using CURDATE() for MySQL. For Oracle, use TRUNC(SYSDATE)
             String query = "SELECT seat_number FROM bookings WHERE bus_id = ? AND travel_date = CURDATE() AND status = 'Confirmed'";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setInt(1, selectedBusId);
@@ -390,12 +396,12 @@ public class BookTicketFrame extends JFrame {
                 bookedSeats.add(rs.getString("seat_number"));
             }
             
-            // Create seat grid (20 seats: 5 rows x 4 columns)
+            // Create seat grid (40 seats: 10 rows x 4 columns)
             seatGridPanel.removeAll();
             
-            for (int row = 0; row < 5; row++) {
-                for (int col = 0; col < 4; col++) {
-                    int seatNum = (row * 4) + col + 1;
+            for (int row = 0; row < SEAT_ROWS; row++) {
+                for (int col = 0; col < SEAT_COLS; col++) {
+                    int seatNum = (row * SEAT_COLS) + col + 1;
                     String seatNumber = String.format("%02d", seatNum);
                     
                     JButton seatButton;
