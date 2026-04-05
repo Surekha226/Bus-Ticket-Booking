@@ -87,7 +87,6 @@ public class AdminAllBookingsFrame extends JFrame {
         });
         
         rightPanel.add(backButton);
-        
         headerPanel.add(leftPanel, BorderLayout.WEST);
         headerPanel.add(rightPanel, BorderLayout.EAST);
         
